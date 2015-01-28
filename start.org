@@ -1,6 +1,6 @@
-#+TITLE: Emacs 24 configuration for Clinton Dreisbach
-#+AUTHOR: Clinton Dreisbach
-#+EMAIL: clinton@dreisbach.us
+#+TITLE: Emacs 24 configuration for Mason Stewart
+#+AUTHOR: Mason Stewart
+#+EMAIL: masondesu@gmail.com
 #+OPTIONS: toc:2 num:nil
 
 * Introduction
@@ -23,8 +23,8 @@
    environment. I prefer to be explicit about it.
 
 #+BEGIN_SRC emacs-lisp
-  (setq user-full-name "Clinton N. Dreisbach")
-  (setq user-mail-address "clinton@dreisbach.us")
+    (setq user-full-name "Mason Stewart")
+    (setq user-mail-address "masondesu@gmail.com")
 #+END_SRC
 
 * Must-Have Configuration
@@ -146,6 +146,7 @@
     (newline)
     (forward-line -1)
     (indent-for-tab-command))
+
 #+END_SRC
 
 * Package Management
@@ -212,6 +213,7 @@
                          phoenix-dark-pink-theme
                          pony-mode
                          projectile
+                         projectile-speedbar
                          python-mode
                          qsimpleq-theme
                          rainbow-delimiters
@@ -386,42 +388,49 @@ I want to be able to use [[http://ditaa.sourceforge.net/][ditaa]] and Clojure in
    use-dialog-box nil
    ;; Flash the screen on errors.
    visible-bell t)
-  
+
   (setq-default
    ;; Make the cursor a thin vertical line.
    cursor-type 'bar
    ;; Show the end of files inside buffers.
    indicate-empty-lines t)
-  
+
   ;; Show what text is selected.
   (transient-mark-mode t)
   ;; And delete selected text if we type over it.
   (delete-selection-mode t)
-  
+
   ;; Always show matching sets of parentheses.
   (show-paren-mode t)
-  
+
   ;; Highlight the current line.
   (global-hl-line-mode t)
-  
+
   ;; Hide the scroll bar, tool bar, and menu bar.
   (scroll-bar-mode -1)
   (tool-bar-mode -1)
   (menu-bar-mode -1)
-  
+
   ;; Allow us to type "y" or "n" instead of "yes" or "no".
   (defalias 'yes-or-no-p 'y-or-n-p)
-  
+
   ;; Show the end of files.
   (when (not indicate-empty-lines)
     (toggle-indicate-empty-lines))
-  
+
   (when window-system
     ;; Make the window title reflect the current buffer.
     (setq frame-title-format '(buffer-file-name "%f" ("%b")))
     ;; Load my favorite color theme. By passing t as the second parameter,
     ;; we are not prompted to set the theme as safe.
-    (load-theme 'phoenix-dark-pink t))
+    (load-theme 'noctilux t)
+    ;; full screen window on start plz
+    (set-frame-size (selected-frame) 202 190)
+    (set-frame-position (selected-frame) 2 0))
+
+  ;; fix wonky minibuffer bg colors
+  (set-face-background 'minibuffer-prompt "#aadddd")
+  (set-face-foreground 'minibuffer-prompt "dark slate gray")
 #+END_SRC
 
 ** Modeline Improvements
@@ -431,7 +440,7 @@ I want to be able to use [[http://ditaa.sourceforge.net/][ditaa]] and Clojure in
 #+BEGIN_SRC emacs-lisp
   (setq column-number-mode t)
 #+END_SRC
-
+   
 * Files and Directories
   I like to set up a vendor directory for any random elisp files I
   pull in. I get the majority of my functionality from packages
@@ -449,6 +458,17 @@ I want to be able to use [[http://ditaa.sourceforge.net/][ditaa]] and Clojure in
   (dolist (project (directory-files cnd/vendor-dir t "\\w+"))
     (when (file-directory-p project)
       (add-to-list 'load-path project)))
+#+END_SRC
+
+  Let's tell Speedbar to actually show hidden folders, and fix the unreadable
+  background color
+
+#+BEING_SRC emacs-lisp
+  (setq speedbar-directory-unshown-regexp "^$")
+  (speedbar-show-unknown-files t)
+
+  (set-face-background 'speedbar-highlight-face "#000000")
+  (set-face-foreground 'speedbar-highlight-face "#26AFEB")
 #+END_SRC
 
 * Shells
@@ -834,6 +854,9 @@ I should figure out.
   (global-set-key (kbd "C-+") 'cnd/increase-font-size)
   (global-set-key (kbd "C-=") 'cnd/increase-font-size)
   (global-set-key (kbd "C--") 'cnd/decrease-font-size)
+
+  ;; not a keybinding itself, but let's turn on mac-keys-mode by default
+  (mac-key-mode t)
 #+END_SRC
 
 ** Super-Special Personal Keybindings
@@ -881,6 +904,14 @@ I should figure out.
   (global-set-key (kbd "C-c <up>")    'windmove-up)
   (global-set-key (kbd "C-c <down>")  'windmove-down)
 #+END_SRC
+* Projects
+  Settings for projectile
+  
+#+BEGIN_SRC emacs-lisp
+  ;; this refreshes speedbar if we change projectile projects
+  (require 'projectile-speedbar)
+#+END_SRC
+
 * Emacs Server
   It is very annoying to find that you cannot close a buffer that has
   been opened via =emacsclient= in the same way you would close any
@@ -918,7 +949,7 @@ I should figure out.
       (when window-system (set-exec-path-from-shell-PATH))
   
       (set-face-attribute 'default nil
-                    :family "Ubuntu Mono" :height 180 :weight 'normal)
+                    :family "Monaco" :height 120 :weight 'normal)
       (setq mac-option-key-is-meta t)
       (setq mac-command-key-is-meta t)
       (setq mac-command-modifier 'meta)
@@ -939,3 +970,5 @@ I should figure out.
     (when (file-exists-p local-config)
       (load local-config)))
 #+END_SRC
+
+
