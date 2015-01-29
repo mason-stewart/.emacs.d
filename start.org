@@ -42,7 +42,7 @@
 
 * Functions
 #+BEGIN_SRC emacs-lisp
-                                                                  (defun cnd/clean-buffer-safe ()
+  (defun cnd/clean-buffer-safe ()
     "Cleanup whitespace and make sure we are using UTF-8."
     (save-excursion
       (whitespace-cleanup-region (point-min) (point-max))
@@ -240,6 +240,7 @@
                          go-mode
                          god-mode
                          gist
+                         git-gutter
                          haml-mode
                          htmlize
                          hy-mode
@@ -476,6 +477,9 @@ I want to be able to use [[http://ditaa.sourceforge.net/][ditaa]] and Clojure in
   ;; fix wonky minibuffer bg colors
   (set-face-background 'minibuffer-prompt "#aadddd")
   (set-face-foreground 'minibuffer-prompt "dark slate gray")
+
+  ;; omg git gutter yes plz
+  (global-git-gutter-mode +1)
 #+END_SRC
 
 ** Modeline Improvements
@@ -909,6 +913,10 @@ I should figure out.
   ;; indent line or region left and right
   (global-set-key (kbd "A-}") 'mws/forward-indent)
   (global-set-key (kbd "A-{") 'mws/backward-indent)
+
+  ;; more comfortable next/previous buffer
+  (global-set-key (kbd "A-]") 'next-buffer)
+  (global-set-key (kbd "A-[") 'previous-buffer)
 #+END_SRC
 
 ** Super-Special Personal Keybindings
