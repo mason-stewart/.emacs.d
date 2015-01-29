@@ -42,7 +42,7 @@
 
 * Functions
 #+BEGIN_SRC emacs-lisp
-  (defun cnd/clean-buffer-safe ()
+                                                                  (defun cnd/clean-buffer-safe ()
     "Cleanup whitespace and make sure we are using UTF-8."
     (save-excursion
       (whitespace-cleanup-region (point-min) (point-max))
@@ -147,6 +147,51 @@
     (forward-line -1)
     (indent-for-tab-command))
 
+  (defun mws/yank-and-indent ()
+    "Yank and then indent the newly formed region according to mode."
+    (interactive)
+    (yank)
+    (call-interactively 'indent-region))
+
+
+  (defun mws/expand-region-to-whole-lines ()
+    "Expand the region to make it encompass whole lines.
+  If the region is not active, activate the current line.
+  From: http://www.emacswiki.org/emacs/.emacs-ChristianRovner.el"
+    (if (not mark-active)
+        ;; Create region from current line
+        (progn 
+          (beginning-of-line)
+          (set-mark (point))
+          (end-of-line))
+      ;; The mark is active, expand region
+      (let ((beg (region-beginning))
+            (end (region-end)))
+        (goto-char beg)
+        (beginning-of-line)
+        (set-mark (point))
+        (goto-char end)
+        (unless (bolp) (end-of-line)))))
+
+  (defun mws/forward-indent ()
+    "Move the region (or line if no valid region exists) to the right"
+    (interactive)
+    (let (deactivate-mark)
+      (mws/expand-region-to-whole-lines)
+      ;; move the region right
+      (increase-left-margin (region-beginning)
+                            (region-end)
+                            nil)))
+
+  (defun mws/backward-indent ()
+    "Move the region (or line if no valid region exists) to the left"
+    (interactive)
+    (let (deactivate-mark)
+      (mws/expand-region-to-whole-lines)
+      ;; move the region left
+      (decrease-left-margin (region-beginning)
+                            (region-end)
+                            nil)))
 #+END_SRC
 
 * Package Management
@@ -857,6 +902,13 @@ I should figure out.
 
   ;; not a keybinding itself, but let's turn on mac-keys-mode by default
   (mac-key-mode t)
+
+  ;; paste with indent
+  (global-set-key (kbd "A-V") 'mws/yank-and-indent)
+
+  ;; indent line or region left and right
+  (global-set-key (kbd "A-}") 'mws/forward-indent)
+  (global-set-key (kbd "A-{") 'mws/backward-indent)
 #+END_SRC
 
 ** Super-Special Personal Keybindings
