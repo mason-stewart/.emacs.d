@@ -918,6 +918,13 @@ I should figure out.
   ;; more comfortable next/previous buffer
   (global-set-key (kbd "A-]") 'next-buffer)
   (global-set-key (kbd "A-[") 'previous-buffer)
+
+  ;; map all of paredit's keybinding to tagedit
+  (eval-after-load "sgml-mode"
+    '(progn
+       (require 'tagedit)
+       (tagedit-add-paredit-like-keybindings)
+       (add-hook 'html-mode-hook (lambda () (tagedit-mode 1)))))
 #+END_SRC
 
 ** Super-Special Personal Keybindings
