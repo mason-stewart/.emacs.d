@@ -266,6 +266,7 @@
                          sass-mode
                          scss-mode
                          smex
+                         tagedit
                          yaml-mode)
     "Packages I always want installed.")
 #+END_SRC
