@@ -878,6 +878,13 @@ I should figure out.
       (setq eldoc-documentation-function 'scheme-get-current-symbol-info)
       (eldoc-mode)))
 #+END_SRC
+** UnityScript
+   UnityScript is a weirdo JS variant where you can type annotate fns and vars. It has various numeric types instead of plain ol Number.
+
+#+BEGIN_SRC emacs-lisp
+  (require 'unity-mode)
+#+END_SRC
+
 ** YAML
 #+BEGIN_SRC emacs-lisp
   (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
