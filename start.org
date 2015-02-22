@@ -247,6 +247,7 @@
                          ido-ubiquitous
                          inf-mongo
                          jinja2-mode
+                         mac-key-mode
                          magit
                          markdown-mode
                          marmalade
@@ -262,14 +263,19 @@
                          projectile-speedbar
                          python-mode
                          qsimpleq-theme
+                         redo+
                          rainbow-delimiters
                          sass-mode
                          scss-mode
                          smex
+                         sr-speedbar
                          tagedit
                          yaml-mode)
     "Packages I always want installed.")
 #+END_SRC
+
+#+RESULTS:
+: cnd/packages
 
 ** Installing Packages
    This is the magic incantation to get your packages installed. It
