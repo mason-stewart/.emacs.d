@@ -230,6 +230,7 @@
                          cider
                          clojure-mode
                          coffee-mode
+                         company
                          cperl-mode
                          deft
                          diminish
@@ -340,6 +341,14 @@
   (setq ido-enable-flex-matching t
         ido-use-virtual-buffers t)
 #+END_SRC
+
+** Company
+   Company mode offers autocompletion and a number of enhancements to omnisharp-mode for C#.
+
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'after-init-hook 'global-company-mode)
+#+END_SRC
+
 ** Ack
    =ack= is an enhanced grep.
 
