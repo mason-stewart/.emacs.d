@@ -906,7 +906,7 @@ I should figure out.
    UnityScript is a weirdo JS variant where you can type annotate fns and vars. It has various numeric types instead of plain ol Number.
 
 #+BEGIN_SRC emacs-lisp
-  (require 'unity-mode)
+  (require 'unityjs-mode)
 #+END_SRC
 
 ** YAML
