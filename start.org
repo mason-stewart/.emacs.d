@@ -434,7 +434,7 @@ I want to be able to use [[http://ditaa.sourceforge.net/][ditaa]] and Clojure in
   (add-hook 'god-mode-enabled-hook 'my-update-cursor)
   (add-hook 'god-mode-disabled-hook 'my-update-cursor)
 #+END_SRC
-
+   
 * GUI Settings
   Emacs' default GUI settings are not great and cause it to not
   resemble a modern application. Luckily, they are very
@@ -657,6 +657,15 @@ smart quotes. I use [[http://kevinburke.bitbucket.org/markdowncss/][markdown.css
   (setq c-basic-offset 2)
 #+end_src
 
+** C#
+   Use OmniSharp when editing C#.
+#+BEGIN_SRC emacs-lisp
+  (setq omnisharp-server-executable-path "~/OmniSharpServer/OmniSharp/bin/Debug/OmniSharp.exe")
+
+  (add-hook 'csharp-mode-hook 'omnisharp-mode)
+  (add-hook 'csharp-mode-hook 'eldoc-mode)
+#+END_SRC
+   
 ** Clojure
    I want Emacs to open up ClojureScript files with Clojure syntax.
 
@@ -947,6 +956,13 @@ I should figure out.
        (require 'tagedit)
        (tagedit-add-paredit-like-keybindings)
        (add-hook 'html-mode-hook (lambda () (tagedit-mode 1)))))
+
+
+  ;; keybindings for omnisharp-mode
+  ;; see https://github.com/OmniSharp/omnisharp-emacs/blob/master/example-config-for-evil-mode.el for examples of other things you could keybind.
+  (add-hook 'omnisharp-mode-hook
+    (lambda ()
+       (local-set-key (kbd "C-.") 'omnisharp-auto-complete)))
 #+END_SRC
 
 ** Super-Special Personal Keybindings
