@@ -223,7 +223,8 @@
   packages I want to have installed.
 
 #+BEGIN_SRC emacs-lisp
-  (defvar cnd/packages '(adoc-mode
+  (defvar cnd/packages '(ac-js2
+                         adoc-mode
                          ag
                          auto-complete
                          autopair
@@ -249,6 +250,7 @@
                          inf-mongo
                          jade-mode
                          jinja2-mode
+                         js2-mode
                          jsx-mode
                          mac-key-mode
                          magit
@@ -274,7 +276,7 @@
                          sr-speedbar
                          tagedit
                          yaml-mode
-                         yas)
+                         yasnippet)
     "Packages I always want installed.")
 #+END_SRC
 
@@ -745,7 +747,7 @@ us to go to definition with M-. and back again with M-,.
   (require 'go-autocomplete)
   (require 'auto-complete-config)
 #+END_SRC
-
+   
 ** Hy
    Hy is a Lisp implemented on top of Python. It is rad.
 
@@ -756,10 +758,15 @@ us to go to definition with M-. and back again with M-,.
 
 ** Javascript
    JS has its own indentation rules, so I have to set them with a
-   separate variable.
+   separate variable. Let's also go ahead and use js2-mode and 
+   ac-js2-mode, as well as set the highest level of syntax highlighting.
 
 #+begin_src emacs-lisp
   (setq js-indent-level 2)
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+  (add-hook 'js2-mode-hook 'ac-js2-mode)
+  (setq js2-highlight-level 3)
+
 #+end_src
 
 ** Lisp
