@@ -247,7 +247,9 @@
                          hy-mode
                          ido-ubiquitous
                          inf-mongo
+                         jade-mode
                          jinja2-mode
+                         jsx-mode
                          mac-key-mode
                          magit
                          markdown-mode
@@ -271,7 +273,8 @@
                          smex
                          sr-speedbar
                          tagedit
-                         yaml-mode)
+                         yaml-mode
+                         yas)
     "Packages I always want installed.")
 #+END_SRC
 
@@ -435,6 +438,12 @@ I want to be able to use [[http://ditaa.sourceforge.net/][ditaa]] and Clojure in
   (add-hook 'god-mode-disabled-hook 'my-update-cursor)
 #+END_SRC
    
+** Yas
+   Snippets for all the langs :D
+#+BEGIN_SRC emacs-lisp
+   (yas-global-mode 1)
+#+END_SRC
+
 * GUI Settings
   Emacs' default GUI settings are not great and cause it to not
   resemble a modern application. Luckily, they are very
@@ -902,12 +911,7 @@ I should figure out.
       (setq eldoc-documentation-function 'scheme-get-current-symbol-info)
       (eldoc-mode)))
 #+END_SRC
-** UnityScript
-   UnityScript is a weirdo JS variant where you can type annotate fns and vars. It has various numeric types instead of plain ol Number.
 
-#+BEGIN_SRC emacs-lisp
-  (require 'unityjs-mode)
-#+END_SRC
 
 ** YAML
 #+BEGIN_SRC emacs-lisp
@@ -938,6 +942,13 @@ I should figure out.
 
   ;; not a keybinding itself, but let's turn on mac-keys-mode by default
   (mac-key-mode t)
+
+  ;; automatically match curly brackets in paredit mode
+  (add-hook 'paredit-mode-hook
+             (lambda ()
+                (when (>= paredit-version 21)
+                  (local-set-key (kbd "{") 'paredit-open-curly)
+                  (local-set-key (kbd "}") 'paredit-close-curly))))
 
   ;; paste with indent
   (global-set-key (kbd "A-V") 'mws/yank-and-indent)
