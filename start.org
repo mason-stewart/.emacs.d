@@ -223,8 +223,7 @@
   packages I want to have installed.
 
 #+BEGIN_SRC emacs-lisp
-  (defvar cnd/packages '(ac-js2
-                         adoc-mode
+  (defvar cnd/packages '(adoc-mode
                          ag
                          auto-complete
                          autopair
@@ -758,17 +757,28 @@ us to go to definition with M-. and back again with M-,.
 
 ** Javascript
    JS has its own indentation rules, so I have to set them with a
-   separate variable. Let's also go ahead and use js2-mode and 
-   ac-js2-mode, as well as set the highest level of syntax highlighting.
+   separate variable. Let's also go ahead and use js2-mode (better JS mode) and 
+   ac-js2-mode (smart autocompletion), as well as set the highest level of syntax highlighting.
 
-#+begin_src emacs-lisp
+   We'll also turn off company-mode for JS buffers. global-company-mode is awesome, but
+   ac-js2-mode uses autocomplete-mode instead of company-mode.
+
+   N.B., ac-js2 *isn't* installed via MELPA, as the current version had
+   a bug that I needed to patch. Instead the package lives in ~/.emacs.d/vendor/ac-js2
+
+#+BEGIN_SRC emacs-lisp
   (setq js-indent-level 2)
   (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-  (add-hook 'js2-mode-hook 'ac-js2-mode)
   (setq js2-highlight-level 3)
 
-#+end_src
+  (add-hook 'js2-mode-hook (lambda () (company-mode -1)))
 
+  (load "ac-js2")
+  (add-hook 'js2-mode-hook 'ac-js2-mode)
+  (add-hook 'js2-mode-hook 'paredit-mode)
+
+#+END_SRC
+ 
 ** Lisp
    Lisp is the most awesome family of programming languages ever. When
    I'm using Lisp, I want ultimate power, so I turn on paredit, which
@@ -918,7 +928,6 @@ I should figure out.
       (setq eldoc-documentation-function 'scheme-get-current-symbol-info)
       (eldoc-mode)))
 #+END_SRC
-
 
 ** YAML
 #+BEGIN_SRC emacs-lisp
