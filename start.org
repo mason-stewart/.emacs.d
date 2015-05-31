@@ -235,6 +235,7 @@
                          deft
                          diminish
                          elisp-slime-nav
+                         exec-path-from-shell
                          flymake
                          flymake-cursor
                          flymake-python-pyflakes
@@ -247,6 +248,7 @@
                          hy-mode
                          ido-ubiquitous
                          inf-mongo
+                         inf-clojure
                          jade-mode
                          jinja2-mode
                          js2-mode
@@ -265,10 +267,12 @@
                          pony-mode
                          projectile
                          projectile-speedbar
+                         purescript-mode
                          python-mode
                          qsimpleq-theme
                          redo+
                          rainbow-delimiters
+                         racket-mode
                          sass-mode
                          scss-mode
                          smex
@@ -540,7 +544,9 @@ I want to be able to use [[http://ditaa.sourceforge.net/][ditaa]] and Clojure in
 
 #+BEING_SRC emacs-lisp
   (setq speedbar-directory-unshown-regexp "^$")
-  (speedbar-show-unknown-files t)
+  (setq speedbar-show-unknown-files t)
+  (setq sr-speedbar-auto-refresh t)
+  (setq sr-speedbar-skip-other-window-p t)
 
   (set-face-background 'speedbar-highlight-face "#000000")
   (set-face-foreground 'speedbar-highlight-face "#26AFEB")
@@ -674,6 +680,10 @@ smart quotes. I use [[http://kevinburke.bitbucket.org/markdowncss/][markdown.css
 
   (add-hook 'csharp-mode-hook 'omnisharp-mode)
   (add-hook 'csharp-mode-hook 'eldoc-mode)
+
+  (setq omnisharp-auto-complete-popup-help-delay nil)
+  (setq omnisharp-auto-complete-want-importable-types t)
+  (setq omnisharp-imenu-support nil)
 #+END_SRC
    
 ** Clojure
@@ -685,6 +695,8 @@ smart quotes. I use [[http://kevinburke.bitbucket.org/markdowncss/][markdown.css
    Lastly, =cider= is the Emacs client for the Clojure REPL, and I
    want to configure it to hide its special buffers, use eldoc, and be
    easy to switch to.
+
+   Also, let's not have cider jump to errors.
 
 #+BEGIN_SRC emacs-lisp
   (add-to-list 'auto-mode-alist '("\\.cljs$" . clojure-mode))
@@ -699,6 +711,8 @@ smart quotes. I use [[http://kevinburke.bitbucket.org/markdowncss/][markdown.css
   (add-hook 'cider-mode-hook 'cider-turn-on-eldoc-mode)
   (setq nrepl-hide-special-buffers t)
   (add-to-list 'same-window-buffer-names "*nrepl*")
+  (setq cider-auto-jump-to-error nil)
+
 #+END_SRC
 
 ** CSS/SCSS
@@ -837,6 +851,31 @@ I should figure out.
   (require 'pony-mode)
 #+end_src
 
+** Purescript
+   =inferior-psci-mode= offers a few helpful key-bindings for loading
+   current module/file into the repl.
+
+   I've also added =psci-multi-line=, which is janky, but if you /need/
+   multi-line blocks pasted or typed into the repl in emacs, it's your
+   best bet.
+
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'purescript-mode-hook 'inferior-psci-mode)
+  (add-hook 'purescript-mode-hook 'turn-on-purescript-indent)
+
+  (defun psci-multi-line ()
+    (interactive)
+    (let ((previous-args psci/arguments))
+      ;; temporarily set multi-line-mode on with -m.
+      ;; the nil value is the STARTFILE which we don't need
+      ;; C-h f "make-comint-in-buffer" for more details.
+      (setq psci/arguments '(nil "-m"))
+      ;; fire up psci in the context of the current buffer
+      (psci)
+      ;; and set the args back to their original value
+      (setq psci/arguments previous-args)))
+#+END_SRC
+
 ** Ruby
    There are a lot of different file names and extensions that are associated with Ruby. I've listed all I can think of so that =ruby-mode= is loaded for each of them.
 
@@ -861,6 +900,15 @@ I should figure out.
               (define-key ruby-mode-map (kbd "RET") 'newline-and-indent)))
 #+END_SRC
    
+** Racket
+
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'auto-mode-alist '("\\.rkt\\'" . racket-mode))
+  (add-hook 'racket-mode-hook 'paredit-mode)
+  (add-hook 'racket-mode-hook 'rainbow-delimiters-mode)
+
+#+END_SRC
+
 ** Scheme
 
 #+BEGIN_SRC emacs-lisp
@@ -989,7 +1037,10 @@ I should figure out.
   ;; see https://github.com/OmniSharp/omnisharp-emacs/blob/master/example-config-for-evil-mode.el for examples of other things you could keybind.
   (add-hook 'omnisharp-mode-hook
     (lambda ()
-       (local-set-key (kbd "C-.") 'omnisharp-auto-complete)))
+      (local-set-key (kbd "C-.") 'omnisharp-auto-complete)))
+
+  ;; org-mode rebuild project
+  (global-set-key (kbd "A-r") 'org-publish-current-project)
 #+END_SRC
 
 ** Super-Special Personal Keybindings
@@ -1105,3 +1156,52 @@ I should figure out.
 #+END_SRC
 
 
+* Website
+  These are the settings for publishing my cool website
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-publish-project-alist
+        '(("orgfiles"
+           :base-directory "~/masondesu.com/"
+           :base-extension "org"
+           :publishing-directory "~/masondesu.com/dist/"
+           :publishing-function org-html-publish-to-html
+           :exclude "TO_BE_EXCLUDED_OMG.org"   ;; regexp
+           :headline-levels 3
+           :section-numbers nil
+           :with-toc t
+           :html-html5-fancy t
+           :html-doctype "html5"
+           :html-head "<link rel='stylesheet' href='/css/styles.css' type='text/css'/>"
+           :html-preamble "<div class='color'></div>
+                                 <div class='fullscreen'></div>"
+           :html-head-extra ""
+           :html-postamble "<p class='postamble'>Written by %a. Last Updated %T. Made with %c</p>
+                                  <script type='text/javascript' src='/js/cool.js'></script>")
+          
+          ("images"
+           :base-directory "~/masondesu.com/images/"
+           :base-extension "jpg\\|gif\\|png"
+           :publishing-directory "~/masondesu.com/dist/images/"
+           :publishing-function org-publish-attachment)
+
+          ("fonts"
+           :base-directory "~/masondesu.com/fonts/"
+           :base-extension "eot\\|svg\\|ttf\\|woff"
+           :publishing-directory "~/masondesu.com/dist/fonts/"
+           :publishing-function org-publish-attachment)
+          
+          ("css"
+           :base-directory "~/masondesu.com/css/"
+           :base-extension "css"
+           :publishing-directory "~/masondesu.com/dist/css/"
+           :publishing-function org-publish-attachment)
+
+          ("js"
+           :base-directory "~/masondesu.com/js/"
+           :base-extension "js"
+           :publishing-directory "~/masondesu.com/dist/js/"
+           :publishing-function org-publish-attachment)
+          
+          ("website" :components ("orgfiles" "images" "fonts" "css" "js"))))
+#+END_SRC
