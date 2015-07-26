@@ -1,3 +1,4 @@
+
 #+TITLE: Emacs 24 configuration for Mason Stewart
 #+AUTHOR: Mason Stewart
 #+EMAIL: masondesu@gmail.com
@@ -38,6 +39,7 @@
   (require 'cl)
   (global-auto-revert-mode t)
   (winner-mode t)
+  (setq create-lockfiles nil)
 #+END_SRC
 
 * Functions
@@ -239,8 +241,8 @@
                          flymake
                          flymake-cursor
                          flymake-python-pyflakes
+                         flymake-ruby
                          go-mode
-                         god-mode
                          gist
                          git-gutter
                          haml-mode
@@ -249,6 +251,7 @@
                          ido-ubiquitous
                          inf-mongo
                          inf-clojure
+                         inf-ruby
                          jade-mode
                          jinja2-mode
                          js2-mode
@@ -267,16 +270,20 @@
                          pony-mode
                          projectile
                          projectile-speedbar
+                         projectile-rails
                          purescript-mode
                          python-mode
                          qsimpleq-theme
+                         rbenv
                          redo+
                          rainbow-delimiters
                          racket-mode
+                         robe
                          sass-mode
                          scss-mode
                          smex
                          sr-speedbar
+                         tabbar
                          tagedit
                          yaml-mode
                          yasnippet)
@@ -430,19 +437,7 @@ I want to be able to use [[http://ditaa.sourceforge.net/][ditaa]] and Clojure in
                   :value))))
 #+END_SRC
 
-** God-mode
-
-#+BEGIN_SRC emacs-lisp
-  (global-set-key (kbd "<escape>") 'god-local-mode)
-  (defun my-update-cursor ()
-    (setq cursor-type (if (or god-local-mode buffer-read-only)
-                          'box
-                        'bar)))
-  
-  (add-hook 'god-mode-enabled-hook 'my-update-cursor)
-  (add-hook 'god-mode-disabled-hook 'my-update-cursor)
-#+END_SRC
-   
+ 
 ** Yas
    Snippets for all the langs :D
 #+BEGIN_SRC emacs-lisp
@@ -463,7 +458,8 @@ I want to be able to use [[http://ditaa.sourceforge.net/][ditaa]] and Clojure in
    ;; Never show dialog boxes.
    use-dialog-box nil
    ;; Flash the screen on errors.
-   visible-bell t)
+   visible-bell nil
+   ring-bell-function 'ignore)
 
   (setq-default
    ;; Make the cursor a thin vertical line.
@@ -510,7 +506,151 @@ I want to be able to use [[http://ditaa.sourceforge.net/][ditaa]] and Clojure in
 
   ;; omg git gutter yes plz
   (global-git-gutter-mode +1)
+
+  ;; mouse support in terminal?
+  (unless window-system
+    (require 'mouse)
+    (xterm-mouse-mode t)
+    (global-set-key [mouse-4] '(lambda ()
+                                 (interactive)
+                                 (scroll-down 1)))
+    (global-set-key [mouse-5] '(lambda ()
+                                 (interactive)
+                                 (scroll-up 1)))
+    (defun track-mouse (e))
+    (setq mouse-sel-mode t))
+
+  ;; make scrolling not insanely slow
+  ;;  (require 'smooth-scrolling)
+  ;;  (setq mouse-wheel-progressive-speed nil)
+
+
+
+
 #+END_SRC
+
+** tabbar settings
+
+Some helpful settings for =tabbar-mode=.
+
+#+BEGIN_SRC emacs-lisp
+  (custom-set-variables
+   '(tabbar-buffer-home-button (quote ((" [+] ") " [-] ")))
+   '(tabbar-home-button (quote (("[o]") "[x]")))
+   '(tabbar-mode t nil (tabbar))
+   '(tabbar-scroll-left-button (quote ((" << ") "")))
+   '(tabbar-scroll-right-button (quote ((" >> ") "")))
+   '(tabbar-separator (quote (0.2)))
+   '(tabbar-use-images nil)
+   '(tabbar-button ((t (:background "deep sky blue" :foreground "gray26"))))
+   '(tabbar-modified ((t (:background "red" :foreground "gray28" :box (:line-width 6 :color "gray28")))))
+   '(tabbar-selected ((t (:background "deep sky blue" :foreground "gray16" :box (:line-width 6 :color "gray16")))))
+   '(tabbar-unselected ((t (:background "dim gray" :foreground "gray28" :box (:line-width 6 :color "gray28"))))))
+
+  ;; adding spaces
+  (defun tabbar-buffer-tab-label (tab)
+    "Return a label for TAB.
+  That is, a string used to represent it on the tab bar."
+    (let ((label  (if tabbar--buffer-show-groups
+                      (format " [%s] " (tabbar-tab-tabset tab))
+                    (format " %s " (tabbar-tab-value tab)))))
+      ;; Unless the tab bar auto scrolls to keep the selected tab
+      ;; visible, shorten the tab label to keep as many tabs as possible
+      ;; in the visible area of the tab bar.
+      (if tabbar-auto-scroll-flag
+          label
+        (tabbar-shorten
+         label (max 1 (/ (window-width)
+                         (length (tabbar-view
+                                  (tabbar-current-tabset)))))))))
+
+  (tabbar-mode 1)
+
+
+
+  (setq mws/group-by-project nil)
+  ;; what's going on with tabbar and flycheck?
+  (defun mws/tabbar-buffer-groups ()
+    "Return the list of group names the current buffer belongs to.
+  Return a list of one element based on major mode."
+    (list
+     (cond
+      ;; Flycheck causes a buffer to temporarily become "Process" group, do not want
+      ;; ((or (get-buffer-process (current-buffer))
+      ;;      ;; Check if the major mode derives from `comint-mode' or
+      ;;      ;; `compilation-mode'.
+      ;;      (tabbar-buffer-mode-derived-p
+      ;;       major-mode '(comint-mode compilation-mode)))
+      ;;  "Process"
+      ;;  )
+      ((member (buffer-name)
+               '("*scratch*" "*Messages*"))
+       "Common"
+       )
+      ((eq major-mode 'dired-mode)
+       "Dired"
+       )
+      ((eq major-mode 'direx:direx-mode)
+       "Direx"
+       )
+      ((memq major-mode
+             '(help-mode apropos-mode Info-mode Man-mode))
+       "Help"
+       )
+      ((memq major-mode
+             '(rmail-mode
+               rmail-edit-mode vm-summary-mode vm-mode mail-mode
+               mh-letter-mode mh-show-mode mh-folder-mode
+               gnus-summary-mode message-mode gnus-group-mode
+               gnus-article-mode score-mode gnus-browse-killed-mode))
+       "Mail"
+       )
+      (t
+       ;; Return `mode-name' if not blank, `major-mode' otherwise.
+       (let ((group
+              (if (and (stringp mode-name)
+                       ;; Take care of preserving the match-data because this
+                       ;; function is called when updating the header line.
+                       (save-match-data (string-match "[^ ]" mode-name)))
+                  mode-name
+                (symbol-name major-mode))))
+         (if (projectile-project-p)
+             (if mws/group-by-project
+                 (projectile-project-name)
+               (format "%s:%s" (projectile-project-root) group))
+           group))
+       ))))
+
+  (defun mws/cached (func)
+    "Turn a function into a cache dict."
+    (lexical-let ((table (make-hash-table :test 'equal))
+                  (f func))
+      (lambda (key)
+        (let ((value (gethash key table)))
+          (if value
+              value
+            (puthash key (funcall f) table))))))
+
+  ;; evaluate again to clear cache
+  (setq cached-ppn (mws/cached 'mws/tabbar-buffer-groups))
+
+  (defun mws/tabbar-groups-by-project ()
+    (funcall cached-ppn (buffer-name)))
+
+  (setq tabbar-buffer-groups-function 'mws/tabbar-groups-by-project)
+
+  (defun mws/toggle-group-by-project ()
+    (interactive)
+    (setq mws/group-by-project (not mws/group-by-project))
+    (message "Grouping by project alone: %s"
+             (if mws/group-by-project "enabled" "disabled"))
+    (setq cached-ppn (mws/cached 'mws/tabbar-buffer-groups)))
+
+
+  (setq tabbar-buffer-groups-function 'mws/tabbar-buffer-groups)
+#+END_SRC
+
+
 
 ** Modeline Improvements
    I like having the column number in my modeline to help with stack
@@ -597,6 +737,7 @@ I want to be able to use [[http://ditaa.sourceforge.net/][ditaa]] and Clojure in
 #+begin_src emacs-lisp
   (setq-default indent-tabs-mode nil
                 tab-width 2)
+  (setq standard-indent 2)
 #+end_src
 
 ** Multiple Buffers
@@ -769,6 +910,11 @@ us to go to definition with M-. and back again with M-,.
   (add-hook 'hy-mode-hook 'rainbow-delimiters-mode)
 #+END_SRC
 
+** Haskell
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'haskell-mode-hook 'haskell-indentation-mode)
+#+END_SRC
+
 ** Javascript
    JS has its own indentation rules, so I have to set them with a
    separate variable. Let's also go ahead and use js2-mode (better JS mode) and 
@@ -782,14 +928,8 @@ us to go to definition with M-. and back again with M-,.
 
 #+BEGIN_SRC emacs-lisp
   (setq js-indent-level 2)
-  (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-  (setq js2-highlight-level 3)
 
-  (add-hook 'js2-mode-hook (lambda () (company-mode -1)))
-
-  (load "ac-js2")
-  (add-hook 'js2-mode-hook 'ac-js2-mode)
-  (add-hook 'js2-mode-hook 'paredit-mode)
+  (add-hook 'js-mode-hook 'autopair-mode)
 
 #+END_SRC
  
@@ -827,7 +967,7 @@ us to go to definition with M-. and back again with M-,.
   ;;             #'cnd/engage-lisp-power))
   
 #+END_SRC
-
+   
 ** Python
 I have customized pychecker to run my own version, which runs
 autopep8, pyflakes, and pep8.
@@ -894,10 +1034,33 @@ I should figure out.
   (add-hook 'ruby-mode-hook
             (lambda ()
               (autopair-mode)
+              (setq ruby-deep-indent-paren nil)
+              (setq rainbow-delimiters-mode t)
+              ;; searches for .ruby-version and activates the corresponding ruby
+              (rbenv-use-corresponding)
+              ;; (ac-robe-setup) turned off for now
               (add-hook 'before-save-hook 'whitespace-cleanup nil t)
               (define-key ruby-mode-map "{" 'self-insert-command)
               (define-key ruby-mode-map "}" 'self-insert-command)
               (define-key ruby-mode-map (kbd "RET") 'newline-and-indent)))
+
+  (require 'flymake-ruby)
+  (add-hook 'ruby-mode-hook 'flymake-ruby-load)
+  (add-hook 'ruby-mode-hook 'projectile-mode)
+  (add-hook 'projectile-mode-hook 'projectile-rails-on)
+
+  (autoload 'inf-ruby "inf-ruby" "Run an inferior Ruby process" t)
+    (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode)  
+
+  ;; rbenv stuff
+  (setq rbenv-installation-dir "/usr/local/rbenv")
+  (require 'rbenv)
+  (global-rbenv-mode)
+
+  ;; Robe - turned off for now.
+  ;; (require 'robe)
+  ;; (add-hook 'ruby-mode-hook 'robe-mode)
+
 #+END_SRC
    
 ** Racket
@@ -1022,8 +1185,10 @@ I should figure out.
   (global-set-key (kbd "A-{") 'mws/backward-indent)
 
   ;; more comfortable next/previous buffer
-  (global-set-key (kbd "A-]") 'next-buffer)
-  (global-set-key (kbd "A-[") 'previous-buffer)
+  (global-set-key (kbd "A-]") 'tabbar-forward)
+  (global-set-key (kbd "A-[") 'tabbar-backward)
+  (global-set-key (kbd "A-M-]") 'tabbar-forward-group)
+  (global-set-key (kbd "A-M-[") 'tabbar-backward-group)
 
   ;; map all of paredit's keybinding to tagedit
   (eval-after-load "sgml-mode"
@@ -1041,6 +1206,13 @@ I should figure out.
 
   ;; org-mode rebuild project
   (global-set-key (kbd "A-r") 'org-publish-current-project)
+
+  ;; use Esc as C-g for when muscle memory kicks in
+  (global-set-key (kbd "<escape>") 'keyboard-quit)
+
+  ;; jump 5 lines
+  (global-set-key (kbd "A-C-n") (lambda () (interactive) (next-line 5)))
+  (global-set-key (kbd "A-C-p") (lambda () (interactive) (previous-line 5)))
 #+END_SRC
 
 ** Super-Special Personal Keybindings
@@ -1129,9 +1301,9 @@ I should figure out.
         (let ((path-from-shell (shell-command-to-string "$SHELL -i -c 'echo $PATH'")))
           (setenv "PATH" path-from-shell)
           (setq exec-path (split-string path-from-shell path-separator))))
-  
+      
       (when window-system (set-exec-path-from-shell-PATH))
-  
+      
       (set-face-attribute 'default nil
                     :family "Monaco" :height 120 :weight 'normal)
       (setq mac-option-key-is-meta t)
@@ -1141,7 +1313,7 @@ I should figure out.
       (global-set-key (kbd "M-+") 'cnd/increase-font-size)
       (global-set-key (kbd "M-=") 'cnd/increase-font-size)
       (global-set-key (kbd "M--") 'cnd/decrease-font-size))
-    
+
 #+END_SRC
 * Local Configuration
   No matter how universal your configuration is, you will find
